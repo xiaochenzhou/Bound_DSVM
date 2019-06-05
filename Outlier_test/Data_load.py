@@ -10,6 +10,8 @@ from sklearn import preprocessing
 import copy
 import matplotlib.pyplot as plt
 from plot_utility import SVM_plot
+import csv
+from sklearn import preprocessing
 
 
 def read_UCI_data(num):
@@ -71,6 +73,35 @@ def read_skin():
 
     return Train_data, Train_label, Test_data, Test_label
 
+def read_satellite():
+    filename = 'satellite.csv'
+    ratio = 0.8
+    num_feature = 36
+
+    with open(filename) as f:
+        reader = csv.reader(f)
+        cont = list(reader)
+    X_l = []
+    y_l = []
+    for i in cont:
+        X_l.append(i[1:(num_feature+1)])
+        y_l.append(i[0])
+    X = np.array(X_l, dtype = float)
+    y = np.array(y_l, dtype = int)
+
+    # standarize and normalize the data
+    y = y*2 - 1
+    X = preprocessing.scale(X)
+
+    # shuffle
+    X,y = shuffle(X, y, random_state = 10086)
+    size = len(y)
+    X_train = X[:int(size*ratio)]
+    y_train = y[:int(size*ratio)]
+    X_test = X[int(size*ratio):]
+    y_test = y[int(size*ratio):]
+
+    return X_train, y_train, X_test, y_test
 
 
 def read_2D():
