@@ -1,52 +1,22 @@
 import numpy as np
-from sklearn import svm, datasets
-from Data_dist import data_partition, kmeans_partition
-import Edge_node as Ed
 import sklearn
-import random_select as Rs
-import Central_node as Ce
 from sklearn.utils import shuffle
-from sklearn import preprocessing
-import copy
-import matplotlib.pyplot as plt
-from plot_utility import SVM_plot
 import csv
 from sklearn import preprocessing
-
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 def read_UCI_data(num):
     if (num == 0):
-        Training_set = sklearn.datasets.load_svmlight_file('skin_nonskin.txt')
+        Train_data, Train_label, Test_data, Test_label = read_skin()
     elif (num == 1):
-        Training_set = sklearn.datasets.load_svmlight_file('phishing.txt')
+        Train_data, Train_label, Test_data, Test_label = read_phishing()
     elif (num == 2):
-        Training_set = sklearn.datasets.load_svmlight_file('mushrooms.txt')
+        Train_data, Train_label, Test_data, Test_label = read_satellite()
     elif (num == 3):
-        Training_set = sklearn.datasets.load_svmlight_file('ijcnn1.tr')
-    elif (num == 4):
-        Training_set = sklearn.datasets.load_svmlight_file('mnist.scale')
+        Train_data, Train_label, Test_data, Test_label = read_ijcnn()
     else:
         raise ValueError
-
-
-    Train_label_t = Training_set[1]
-    Train_label_t = (2 * (Train_label_t % 2)) - 1
-    Train_data_t = np.array(Training_set[0].todense())
-    Train_data_t = preprocessing.normalize(Train_data_t)
-
-    Train_data_s, Train_label_s = shuffle(Train_data_t, Train_label_t, random_state = 1)
-
-    Train_data_s, Train_label_s = data_clean(Train_data_s, Train_label_s)
-
-    Train_label = Train_label_s[:10000]
-    Train_data = Train_data_s[:10000, :]
-
-    g_size = np.size(Train_label)
-
-    Test_data = Train_data[int(g_size * 4 / 5):g_size]
-    Test_label = Train_label[int(g_size * 4 / 5):g_size]
-    Train_data = Train_data[:int(g_size * 4 / 5)]
-    Train_label = Train_label[:int(g_size * 4 / 5)]
 
     return Train_data, Train_label, Test_data, Test_label
 
@@ -54,15 +24,12 @@ def read_skin():
     Train_data_t = np.load("skin_nonskin_data.npy")
     Train_label_t = np.load("skin_nonskin_label.npy")
 
-    Train_data_t = preprocessing.normalize(Train_data_t)
+    Train_data_t = preprocessing.scale(Train_data_t)
 
 
     Train_label_t = (2 * (Train_label_t % 2)) - 1
 
-    Train_data_s, Train_label_s = shuffle(Train_data_t, Train_label_t, random_state=1)
-
-    Train_label = Train_label_s[:10000]
-    Train_data = Train_data_s[:10000, :]
+    Train_data, Train_label = shuffle(Train_data_t, Train_label_t, random_state=1)
 
     g_size = np.size(Train_label)
 
@@ -91,6 +58,10 @@ def read_satellite():
 
     # standarize and normalize the data
     y = y*2 - 1
+
+    # scaler = MinMaxScaler()
+    # scaler.fit(X)
+    # X = scaler.transform(X)
     X = preprocessing.scale(X)
 
     # shuffle
@@ -102,6 +73,44 @@ def read_satellite():
     y_test = y[int(size*ratio):]
 
     return X_train, y_train, X_test, y_test
+
+def read_phishing():
+    Train_data_t = np.load('phishing_data.npy')
+    Train_label_t = np.load('phishing_label.npy')
+
+    # Train_data_t = preprocessing.scale(Train_data_t)
+
+    Train_label_t = (2 * (Train_label_t % 2)) - 1
+
+    Train_data, Train_label = shuffle(Train_data_t, Train_label_t, random_state=1)
+
+    g_size = np.size(Train_label)
+
+    Test_data = Train_data[int(g_size * 4 / 5):g_size]
+    Test_label = Train_label[int(g_size * 4 / 5):g_size]
+    Train_data = Train_data[:int(g_size * 4 / 5)]
+    Train_label = Train_label[:int(g_size * 4 / 5)]
+
+    return Train_data, Train_label, Test_data, Test_label
+
+def read_ijcnn():
+    Train_data_t = np.load('ijcnn1_data.npy')
+    Train_label_t = np.load('ijcnn1_label.npy')
+
+    scaler = StandardScaler()
+    scaler.fit(Train_data_t)
+
+    Train_data_t = scaler.transform(Train_data_t)
+
+    Train_data, Train_label = shuffle(Train_data_t, Train_label_t, random_state=1)
+
+    Test_set = sklearn.datasets.load_svmlight_file('ijcnn1.t')
+    Test_data = np.array(Test_set[0].todense())
+    Test_data = scaler.transform(Test_data)
+    Test_label = Test_set[1]
+
+    return Train_data, Train_label, Test_data, Test_label
+
 
 
 def read_2D():
